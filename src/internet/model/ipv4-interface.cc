@@ -30,8 +30,13 @@
 #include "ns3/node.h"
 #include "ns3/pointer.h"
 #include "ns3/traffic-control-layer.h"
-
-
+#include <unordered_map>
+#include "ns3/mac16-address.h"
+#include "ns3/ipv4-address.h"
+std::unordered_map<ns3::Ipv4Address, ns3::Mac16Address, ns3::Ipv4AddressHash>* GetGlobalIpToMacMap() {
+    static std::unordered_map<ns3::Ipv4Address, ns3::Mac16Address, ns3::Ipv4AddressHash> ipToMacMap;
+    return &ipToMacMap;
+}
 namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("Ipv4Interface");
@@ -229,9 +234,9 @@ Ipv4Interface::Send (Ptr<Packet> p, const Ipv4Header & hdr, Ipv4Address dest)
       return;
     } 
 
-  NS_ASSERT (m_tc != 0);
+  NS_ASSERT (m_tc != 0);//流量控制层 (m_tc) 已设置
 
-  // is this packet aimed at a local interface ?
+  // is this packet aimed at a local interface ? 本地接口地址检查（本地交付）
   for (Ipv4InterfaceAddressListCI i = m_ifaddrs.begin (); i != m_ifaddrs.end (); ++i)
     {
       if (dest == (*i).GetLocal ())
@@ -244,6 +249,19 @@ Ipv4Interface::Send (Ptr<Packet> p, const Ipv4Header & hdr, Ipv4Address dest)
           return;
         }
     }
+  
+  // 检查我们自己的映射表
+  if (!dest.IsBroadcast() && !dest.IsMulticast()) {
+      auto* map = GetGlobalIpToMacMap();
+      auto it = map->find(dest);
+      if (it != map->end()) {
+          // 找到了映射，直接发送单播包
+          NS_LOG_LOGIC ("Found in IP-MAC map, sending unicast");
+          m_tc->Send (m_device, Create<Ipv4QueueDiscItem> (p, it->second, Ipv4L3Protocol::PROT_NUMBER, hdr));
+          return;
+      }
+  }
+  
   if (m_device->NeedsArp ())
     {
       NS_LOG_LOGIC ("Needs ARP" << " " << dest);
@@ -297,7 +315,6 @@ Ipv4Interface::Send (Ptr<Packet> p, const Ipv4Header & hdr, Ipv4Address dest)
       m_tc->Send (m_device, Create<Ipv4QueueDiscItem> (p, m_device->GetBroadcast (), Ipv4L3Protocol::PROT_NUMBER, hdr));
     }
 }
-
 uint32_t
 Ipv4Interface::GetNAddresses (void) const
 {

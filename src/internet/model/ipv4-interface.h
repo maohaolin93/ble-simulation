@@ -231,14 +231,14 @@ private:
 
 
 
-  bool m_ifup; //!< The state of this interface
-  bool m_forwarding;  //!< Forwarding state.
-  uint16_t m_metric;  //!< Interface metric
-  Ipv4InterfaceAddressList m_ifaddrs; //!< Address list
+  bool m_ifup; //!< The state of this interface 表示接口是否启用（true 表示 up，false 表示 down）
+  bool m_forwarding;  //!< Forwarding state. 表示是否启用 IP 数据包转发
+  uint16_t m_metric;  //!< Interface metric 接口的路由度量值（metric），用于路由选择
+  Ipv4InterfaceAddressList m_ifaddrs; //!< Address list 存储接口的 IPv4 地址列表（std::list<Ipv4InterfaceAddress>）
   Ptr<Node> m_node; //!< The associated node
   Ptr<NetDevice> m_device; //!< The associated NetDevice
-  Ptr<TrafficControlLayer> m_tc; //!< The associated TrafficControlLayer
-  Ptr<ArpCache> m_cache; //!< ARP cache
+  Ptr<TrafficControlLayer> m_tc; //!< The associated TrafficControlLayer 流量控制层
+  Ptr<ArpCache> m_cache; //!< ARP cache ARP 缓存
 };
 
 } // namespace ns3

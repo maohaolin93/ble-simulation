@@ -66,6 +66,13 @@ Mac16Address::Mac16Address ()
 Mac16Address::Mac16Address (const char *str)
 {
   NS_LOG_FUNCTION (this << str);
+  NS_LOG_FUNCTION(this << (str ? str : "nullptr"));
+  if (str == nullptr) {
+      NS_LOG_ERROR("Input string is null, initializing to default address");
+      m_address[0] = 0;
+      m_address[1] = 0;
+      return;
+  }
   int i = 0;
   while (*str != 0 && i < 2)
     {
@@ -94,6 +101,69 @@ Mac16Address::Mac16Address (const char *str)
     }
   NS_ASSERT (i == 2);
 }
+/*Mac16Address::Mac16Address(const char *str)
+{
+    NS_LOG_FUNCTION(this << (str ? str : "nullptr"));
+    if (str == nullptr) {
+        NS_LOG_ERROR("Input string is null, initializing to default address");
+        m_address[0] = 0;
+        m_address[1] = 0;
+        return;
+    }
+
+    // 初始化 m_address
+    m_address[0] = 0;
+    m_address[1] = 0;
+
+    int i = 0;
+    int charCount = 0; // 每个字节的字符计数
+    uint8_t byte = 0;
+
+    while (*str != 0 && i < 2)
+    {
+        charCount = 0;
+        byte = 0;
+        while (*str != ASCII_COLON && *str != 0 && charCount < 2)
+        {
+            char low = AsciiToLowCase(*str);
+            if ((low >= '0' && low <= '9') || (low >= 'a' && low <= 'f'))
+            {
+                byte <<= 4;
+                if (low >= 'a')
+                {
+                    byte |= low - ASCII_a + 10;
+                }
+                else
+                {
+                    byte |= low - ASCII_ZERO;
+                }
+                charCount++;
+            }
+            else
+            {
+                NS_LOG_ERROR("Invalid hex character: " << *str);
+                return; // 无效字符，提前返回
+            }
+            str++;
+        }
+        if (charCount == 2) // 确保每个字节解析了 2 个字符
+        {
+            m_address[i] = byte;
+            i++;
+        }
+        else
+        {
+            NS_LOG_ERROR("Incomplete byte at position " << i);
+            return; // 字符数不足，提前返回
+        }
+        if (*str == ASCII_COLON)
+        {
+            str++; // 跳过冒号
+        }
+    }
+
+    NS_ASSERT_MSG(i == 2, "Failed to parse exactly 2 bytes, parsed: " << i);
+}*/
 
 void
 Mac16Address::CopyFrom (const uint8_t buffer[2])
