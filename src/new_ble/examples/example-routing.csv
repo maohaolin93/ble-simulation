@@ -1,0 +1,2 @@
+#Scenario 3 nodes on a square field with side 5 meter TX window scheduling enabled: 1, connection interval = 1250 millisec, (0 = random) 
+Iteration, ID, transmitted, received, received unique, received error, broadcast received, TX Windows Skipped, x coords, y coords 
